@@ -85,7 +85,15 @@ class spiderNoticias(scrapy.Spider):
                 fecha=i.find('div', attrs={'class':'day'}).string+' de '+i.find('div', attrs={'class':'month'}).string+' de '+i.find('div', attrs={'class':'year'}).string
                 with open('departamentos.json', 'r') as f:
                     departamentos = json.load(f)
-                departamento=departamentos['https://'+url.split('/')[2]+'/']
+                #departamento=departamentos['https://'+url.split('/')[2]+'/']
+                try:
+                    departamento=departamentos['https://'+url.split('/')[2]+'/']
+                except Exception as e:
+                    pass
+                try:
+                    departamento=departamentos['https://'+url.split('/')[2]+'/es/']
+                except Exception as e:
+                    pass
                 titulo=i.find('h2').find('a').string
                 response2 = urllib2.urlopen(urlparse.urljoin(response.url,i.select('a[href*="noticia"]')[0]['href']))
                 enlace= response2.url

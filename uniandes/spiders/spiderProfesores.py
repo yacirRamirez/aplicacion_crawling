@@ -15,22 +15,27 @@ class SpiderProfesores(scrapy.Spider):
         ]
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
-
+    #### La siguiente funcion saca los departamentos de toda la universidad
+    ####    -parametros:
+    ####        soup: html de la pagina donde se pretende sacar los departamentos
     def sacarDepartamentos(self,soup):
         departamentos={}
         for tag in soup.find_all("a", string=re.compile("Ver departamento")):
             departamentos[tag['href']]=soup.find("a", href=re.compile(tag['href'])).string
-        print(departamentos)
         return departamentos
 
+    #### La siguiente funcion saca las facultades de toda la universidad
+    ####    -parametros:
+    ####        soup: html de la pagina donde se pretende sacar las facultades
     def sacarFacultades(self,soup):
         facultades={}
         for tag in soup.find_all("a", string=re.compile("Ver facultad")):
             if soup.find("a", href=re.compile(tag['href'])) is not None:
                 facultades[tag['href']]=soup.find("a", href=re.compile(tag['href'])).string
-        print(facultades)
         return facultades
 
+    #### Funcion que captura la pagina que se ha cargado en la varibale response para seguir navegando a
+    #### otras paginas y sacar informacion de ellas
     def parse(self, response):
         url=response.url
         print('PPPPPPPPPPPPPPPPPPPPPPPPPPPPPASO POR= %s' % url)
@@ -51,7 +56,7 @@ class SpiderProfesores(scrapy.Spider):
                 raise
             try:
                 pass
-                #next_page='https://antropologia.uniandes.edu.co'
+                #next_page='https://sistemas.uniandes.edu.co'
                 #yield scrapy.Request(url=next_page, callback=self.parse)
             except Exception as e:
                 raise
@@ -64,22 +69,27 @@ class SpiderProfesores(scrapy.Spider):
             except Exception as e:
                 raise
 
-        #### el siguiente codigo entra a las paginas de noticias
-        if not len(soup.select('a[href*="noticias"]'))==0:
-            next_page=urlparse.urljoin(response.url, soup.select('a[href*="noticias"]')[0]['href'])
-            try:
-                yield scrapy.Request(url=next_page, callback=self.parse)
-            except Exception as e:
-                raise
-        if not len(soup.select('a[href*="eventos"]'))==0:
-            next_page=urlparse.urljoin(response.url, soup.select('a[href*="eventos"]')[0]['href'])
-            try:
-                yield scrapy.Request(url=next_page, callback=self.parse)
-            except Exception as e:
-                raise
         #### el siguiente codigo entra a las paginas de los profesores
         if not len(soup.select('a[href*="profesor"]'))==0:
             next_page=urlparse.urljoin(response.url, soup.select('a[href*="profesor"]')[0]['href'])
+            try:
+                yield scrapy.Request(url=next_page, callback=self.parse)
+            except Exception as e:
+                raise
+        if not len(soup.select('a[href*="planta"]'))==0:
+            next_page=urlparse.urljoin(response.url, soup.select('a[href*="planta"]')[0]['href'])
+            try:
+                yield scrapy.Request(url=next_page, callback=self.parse)
+            except Exception as e:
+                raise
+        if not len(soup.select('a[href*="catedra"]'))==0:
+            next_page=urlparse.urljoin(response.url, soup.select('a[href*="catedra"]')[0]['href'])
+            try:
+                yield scrapy.Request(url=next_page, callback=self.parse)
+            except Exception as e:
+                raise
+        if not len(soup.select('a[href*="nuestro-equipo"]'))==0:
+            next_page=urlparse.urljoin(response.url, soup.select('a[href*="nuestro-equipo"]')[0]['href'])
             try:
                 yield scrapy.Request(url=next_page, callback=self.parse)
             except Exception as e:
@@ -90,26 +100,19 @@ class SpiderProfesores(scrapy.Spider):
                 yield scrapy.Request(url=next_page, callback=self.parse)
             except Exception as e:
                 raise
-        #### el siguiente codigo saca informacion de las noticias de los departamentos de ciencias sociales
-        #if not len(soup.select('div[class="event"]'))==0:
-        #    for i in soup.findAll('div', attrs = {'class': 'event'} ):
-        #        fecha=i.find('div', attrs={'class':'day'}).string+' de '+i.find('div', attrs={'class':'month'}).string+' de '+i.find('div', attrs={'class':'year'}).string
-        #        with open('departamentos.json', 'r') as f:
-        #            departamentos = json.load(f)
-        #        departamento=departamentos['https://'+url.split('/')[2]+'/']
-        #        titulo=i.find('h2').find('a').string
-        #        response2 = urllib2.urlopen(urlparse.urljoin(response.url,i.select('a[href*="noticia"]')[0]['href']))
-        #        enlace= response2.url
-        #        soup2=BeautifulSoup(response2.read(),'html.parser')
-        #        descripcion=soup2.find('div', attrs={'id': "detail-desc"}).find('p').string
-        #        yield{
-        #            'departamento':departamento,
-        #            'titulo': titulo,
-        #            'enlace': enlace,
-        #            'fecha':fecha,
-        #            'descripcion':descripcion,
-        #        }
-            #subject_options = [i.findAll('option') for i in soup.findAll('select', attrs = {'name': 'primary_select'} )]
+        if not len(soup.select('a[href*="coordinador"]'))==0:
+            next_page=urlparse.urljoin(response.url, soup.select('a[href*="coordinador"]')[0]['href'])
+            try:
+                yield scrapy.Request(url=next_page, callback=self.parse)
+            except Exception as e:
+                raise
+        if not len(soup.select('a[href*="personal"]'))==0:
+            next_page=urlparse.urljoin(response.url, soup.select('a[href*="personal"]')[0]['href'])
+            try:
+                yield scrapy.Request(url=next_page, callback=self.parse)
+            except Exception as e:
+                raise
+
         #### el siguiente codigo saca informacion de los profesores de los departamentos de ciencias sociales
         if not len(soup.findAll('div', attrs={'class':re.compile('teaser-title')}))==0:
             for i,j in zip(soup.findAll('div', attrs={'class':re.compile('teaser-title')}),soup.findAll('div', attrs={'class':'cover boxcaption'})):
@@ -140,6 +143,50 @@ class SpiderProfesores(scrapy.Spider):
                 except Exception as e:
                     pass
 
+                yield{
+                    'departamento':departamento,
+                    'nombre': nombre,
+                    'enlace': enlace,
+                    'puesto':puesto,
+                    'mail':mail,
+                    'extension': extension,
+                    'oficina': oficina,
+                    }
+        #### el siguiente codigo saca informacion de los profesores del departamento de sistemas
+        if not len(soup.select('h3[class="name"]'))==0:
+            for i,j in zip(soup.select('h3[class="name"]'),soup.select('h4[class="cargo"]')):
+                enlace=''
+                try:
+                    enlace=i.find('a')['href']
+                except Exception as e:
+                    pass
+                nombre=''
+                try:
+                    nombre=i.find('a').getText()
+                except Exception as e:
+                    pass
+                with open('departamentos.json', 'r') as f:
+                    departamentos = json.load(f)
+                try:
+                    departamento=departamentos['https://'+url.split('/')[2]+'/']
+                except Exception as e:
+                    pass
+                try:
+                    departamento=departamentos['https://'+url.split('/')[2]+'/es/']
+                except Exception as e:
+                    pass
+                puesto=''
+                try:
+                    puesto=j.getText().strip()
+                except Exception as e:
+                    pass
+                mail=''
+                extension=''
+                oficina=''
+                try:
+                    mail=enlace.split('/')[3]+'@uniandes.edu.co'
+                except Exception as e:
+                    pass
                 yield{
                     'departamento':departamento,
                     'nombre': nombre,
